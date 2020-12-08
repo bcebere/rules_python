@@ -10,8 +10,10 @@ def _pip_repository_impl(rctx):
         target = rctx.attr.python_interpreter_target
         python_interpreter = rctx.path(target)
     else:
-        python_interpreter = rctx.os.environ.get(_PYTHON_BIN_PATH)
-        if not python_interpreter and  "/" not in python_interpreter:
+        if rctx.os.environ.get(_PYTHON_BIN_PATH):
+            target = rctx.os.environ.get(_PYTHON_BIN_PATH)
+            python_interpreter = rctx.path(target)
+        elif  "/" not in python_interpreter:
             python_interpreter = rctx.which(python_interpreter)
         if not python_interpreter:
             fail("python interpreter not found")
