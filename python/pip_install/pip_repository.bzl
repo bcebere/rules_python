@@ -2,13 +2,16 @@
 
 load("//python/pip_install:repositories.bzl", "all_requirements")
 
+_PYTHON_BIN_PATH = "PYTHON_BIN_PATH"
+
 def _pip_repository_impl(rctx):
     python_interpreter = rctx.attr.python_interpreter
     if rctx.attr.python_interpreter_target != None:
         target = rctx.attr.python_interpreter_target
         python_interpreter = rctx.path(target)
     else:
-        if "/" not in python_interpreter:
+        python_interpreter = rctx.os.environ.get(_PYTHON_BIN_PATH)
+        if not python_interpreter and  "/" not in python_interpreter:
             python_interpreter = rctx.which(python_interpreter)
         if not python_interpreter:
             fail("python interpreter not found")
