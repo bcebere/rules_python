@@ -2,32 +2,17 @@
 
 load("//python/pip_install:repositories.bzl", "all_requirements")
 
-_PYTHON_BIN_PATH = "PYTHON_BIN_PATH"
-
-def _get_python_bin(repository_ctx):
-    """Gets the python bin path."""
-    if repository_ctx.attr.python_interpreter_target != None:
-        return str(repository_ctx.path(repository_ctx.attr.python_interpreter_target))
-
-    python_bin = repository_ctx.os.environ.get(_PYTHON_BIN_PATH)
-    if python_bin != None:
-        return python_bin
-
-    python_short_name = "python" + repository_ctx.attr.python_version
-    python_bin_path = repository_ctx.which(python_short_name)
-
-    if python_bin_path != None:
-        return str(python_bin_path)
-    fail("Cannot find python in PATH, please make sure " +
-          "python is installed and add its directory in PATH, or --define " +
-          "%s='/something/else'.\nPATH=%s" % (
-              _PYTHON_BIN_PATH,
-              repository_ctx.os.environ.get("PATH", ""),
-          ))
-
-
 def _pip_repository_impl(rctx):
-    python_interpreter = _get_python_bin(rctx)
+    python_interpreter = rctx.attr.python_interpreter
+    if rctx.attr.python_interpreter_target != None:
+        target = rctx.attr.python_interpreter_target
+        python_interpreter = rctx.path(target)
+    else:
+        if "/" not in python_interpreter:
+            python_interpreter = rctx.which(python_interpreter)
+        if not python_interpreter:
+            fail("python interpreter not found")
+
     rctx.file("BUILD", "")
 
     # Get the root directory of these rules
